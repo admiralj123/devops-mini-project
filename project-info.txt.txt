@@ -1,0 +1,9 @@
+=== TodoFrontend (Angular) ===
+Angular CLI: 21.1.0
+Node Version: 18.x
+Package Manager: npm@11.6.2
+
+=== TodoBackend (Spring Boot) ===
+Spring Boot: 4.0.1
+Java: 17
+Database: PostgreSQL

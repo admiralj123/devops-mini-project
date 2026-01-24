@@ -1,0 +1,411 @@
+<div class="tasks-container">
+  <!-- شريط العنوان -->
+  <header class="tasks-header">
+    <div class="header-top">
+      <div class="header-left">
+        <h1>
+          <span class="header-icon">📋</span>
+          Mes Tâches
+        </h1>
+        <p class="welcome-text">Bonjour, {{ authService.getUsername() }} !</p>
+      </div>
+      
+      <div class="header-right">
+        <button class="logout-btn" (click)="logout()">
+          <span class="btn-icon">🚪</span>
+          Déconnexion
+        </button>
+      </div>
+    </div>
+    
+    <!-- إحصائيات سريعة -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-number">{{ stats().total }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats().completed }}</span>
+        <span class="stat-label">✅ Terminées</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats().pending }}</span>
+        <span class="stat-label">⏳ En attente</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats().work }}</span>
+        <span class="stat-label">💼 Travail</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats().study }}</span>
+        <span class="stat-label">📚 Étude</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats().personal }}</span>
+        <span class="stat-label">🏠 Personnel</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- المحتوى الرئيسي -->
+  <main class="main-content">
+    <!-- الشريط الجانبي -->
+    <aside class="sidebar">
+      <!-- زر إضافة مهمة -->
+      <button 
+        class="btn-add-task" 
+        (click)="showTaskForm.set(true)"
+        *ngIf="!showTaskForm()"
+      >
+        <span class="btn-icon">➕</span>
+        Nouvelle Tâche
+      </button>
+      
+      <!-- فلاتر -->
+      <div class="filters-container">
+        <h3 class="filters-title">Filtrer les tâches</h3>
+        
+        <div class="filter-section">
+          <h4>Catégorie</h4>
+          <div class="filter-buttons">
+            <button 
+              class="filter-btn" 
+              [class.active]="selectedCategory() === 'all'"
+              (click)="applyFilter('category', 'all')"
+            >
+              Toutes
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.active]="selectedCategory() === 'travail'"
+              (click)="applyFilter('category', 'travail')"
+            >
+              💼 Travail
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.active]="selectedCategory() === 'étude'"
+              (click)="applyFilter('category', 'étude')"
+            >
+              📚 Étude
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.active]="selectedCategory() === 'personnel'"
+              (click)="applyFilter('category', 'personnel')"
+            >
+              🏠 Personnel
+            </button>
+          </div>
+        </div>
+        
+        <div class="filter-section">
+          <h4>Priorité</h4>
+          <div class="filter-buttons">
+            <button 
+              class="filter-btn" 
+              [class.active]="selectedPriority() === 'all'"
+              (click)="applyFilter('priority', 'all')"
+            >
+              Toutes
+            </button>
+            <button 
+              class="filter-btn priority-high" 
+              [class.active]="selectedPriority() === 'haute'"
+              (click)="applyFilter('priority', 'haute')"
+            >
+              🔴 Haute
+            </button>
+            <button 
+              class="filter-btn priority-medium" 
+              [class.active]="selectedPriority() === 'moyenne'"
+              (click)="applyFilter('priority', 'moyenne')"
+            >
+              🟠 Moyenne
+            </button>
+            <button 
+              class="filter-btn priority-low" 
+              [class.active]="selectedPriority() === 'faible'"
+              (click)="applyFilter('priority', 'faible')"
+            >
+              🟢 Faible
+            </button>
+          </div>
+        </div>
+        
+        <div class="filter-section">
+          <h4>Statut</h4>
+          <div class="filter-buttons">
+            <button 
+              class="filter-btn" 
+              [class.active]="selectedStatus() === 'all'"
+              (click)="applyFilter('status', 'all')"
+            >
+              Tous
+            </button>
+            <button 
+              class="filter-btn status-pending" 
+              [class.active]="selectedStatus() === 'Pending'"
+              (click)="applyFilter('status', 'Pending')"
+            >
+              ⏳ En attente
+            </button>
+            <button 
+              class="filter-btn status-completed" 
+              [class.active]="selectedStatus() === 'Done'"
+              (click)="applyFilter('status', 'Done')"
+            >
+              ✅ Terminées
+            </button>
+          </div>
+        </div>
+        
+        <button 
+          class="btn-reset-filters" 
+          (click)="selectedCategory.set('all'); selectedPriority.set('all'); selectedStatus.set('all')"
+          *ngIf="selectedCategory() !== 'all' || selectedPriority() !== 'all' || selectedStatus() !== 'all'"
+        >
+          🔄 Réinitialiser tous les filtres
+        </button>
+      </div>
+    </aside>
+
+    <!-- القائمة الرئيسية للمهام -->
+    <section class="tasks-section">
+      <!-- حالة التحميل -->
+      <div *ngIf="isLoading()" class="loading-state">
+        <div class="spinner-large"></div>
+        <p>Chargement de vos tâches...</p>
+      </div>
+      
+      <!-- حالة فارغة -->
+      <div *ngIf="!isLoading() && filteredTasks().length === 0" class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>Aucune tâche trouvée</h3>
+        <p *ngIf="selectedCategory() !== 'all' || selectedPriority() !== 'all' || selectedStatus() !== 'all'">
+          Aucune tâche ne correspond à vos critères de filtrage.
+        </p>
+        <p *ngIf="selectedCategory() === 'all' && selectedPriority() === 'all' && selectedStatus() === 'all'">
+          Commencez par créer votre première tâche !
+        </p>
+        <button 
+          class="btn-create-first" 
+          (click)="showTaskForm.set(true)"
+          *ngIf="!showTaskForm()"
+        >
+          Créer ma première tâche
+        </button>
+      </div>
+      
+      <!-- مؤشر عدد المهام -->
+      <div *ngIf="!isLoading() && filteredTasks().length > 0" class="tasks-info">
+        <div class="tasks-count">
+          <span class="count-number">{{ filteredTasks().length }}</span>
+          <span class="count-text">tâche(s) trouvée(s)</span>
+        </div>
+        <div class="tasks-sort">
+          Trié par: <strong>Date de création</strong>
+        </div>
+      </div>
+      
+      <!-- شبكة المهام -->
+      <div *ngIf="!isLoading() && filteredTasks().length > 0" class="tasks-grid">
+        <div 
+          *ngFor="let task of filteredTasks()" 
+          class="task-card"
+          [class.completed]="task.status === 'Done'"
+        >
+          <div class="task-header">
+            <div class="task-checkbox-section">
+              <input
+                type="checkbox"
+                [checked]="task.status === 'Done'"
+                (change)="toggleTaskCompletion(task)"
+                [id]="'task-' + task.id"
+                class="task-checkbox"
+              />
+              <label [for]="'task-' + task.id" class="task-title">
+                {{ task.title }}
+              </label>
+            </div>
+            
+            <div class="task-actions">
+              <button 
+                class="btn-action btn-edit" 
+                (click)="editTask(task)"
+                title="Modifier"
+              >
+                <span class="action-icon">✏️</span>
+              </button>
+              <button 
+                class="btn-action btn-delete" 
+                (click)="deleteTask(task.id!)"
+                title="Supprimer"
+              >
+                <span class="action-icon">🗑️</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="task-body">
+            <p *ngIf="task.description" class="task-description">
+              {{ task.description }}
+            </p>
+            
+            <div class="task-tags">
+              <span class="task-tag task-category" [class.category-work]="task.category === 'travail'" [class.category-study]="task.category === 'étude'" [class.category-personal]="task.category === 'personnel'">
+                {{ getCategoryIcon(task.category) }} 
+                {{ task.category === 'travail' ? 'Travail' : 
+                   task.category === 'étude' ? 'Étude' : 'Personnel' }}
+              </span>
+              
+              <span class="task-tag task-priority" [class.priority-high]="task.priority === 'haute'" [class.priority-medium]="task.priority === 'moyenne'" [class.priority-low]="task.priority === 'faible'">
+                ⚡ {{ task.priority === 'haute' ? 'Haute' : 
+                     task.priority === 'moyenne' ? 'Moyenne' : 'Faible' }}
+              </span>
+              
+              <span *ngIf="task.dueDate" class="task-tag task-due-date">
+                📅 {{ formatDate(task.dueDate) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="task-footer">
+            <span class="task-status" [class.status-completed]="task.status === 'Done'" [class.status-pending]="task.status === 'Pending'">
+              {{ getStatusIcon(task.status) }} 
+              {{ task.status === 'Done' ? 'Terminée' : 'En attente' }}
+            </span>
+            
+            <span class="task-date" *ngIf="task.createdAt">
+              Créée {{ formatDate(task.createdAt) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Overlay لنموذج إضافة/تعديل المهمة -->
+  <div *ngIf="showTaskForm()" class="form-overlay" (click)="resetForm()">
+    <div class="form-container" (click)="$event.stopPropagation()">
+      <div class="form-header">
+        <h3>{{ taskForm().id ? 'Modifier la tâche' : 'Nouvelle Tâche' }}</h3>
+        <button class="btn-close" (click)="resetForm()" [disabled]="isSubmitting()">×</button>
+      </div>
+      
+      <form (ngSubmit)="saveTask()" #taskFormElement="ngForm">
+        <div class="form-group">
+          <label for="title">Titre *</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            [(ngModel)]="taskForm().title"
+            required
+            placeholder="Que devez-vous faire ?"
+            class="form-input"
+            [disabled]="isSubmitting()"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            [(ngModel)]="taskForm().description"
+            placeholder="Détails de la tâche..."
+            class="form-textarea"
+            rows="3"
+            [disabled]="isSubmitting()"
+          ></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category">Catégorie</label>
+            <select
+              id="category"
+              name="category"
+              [(ngModel)]="taskForm().category"
+              class="form-select"
+              [disabled]="isSubmitting()"
+            >
+              <option *ngFor="let cat of categoryOptions" [value]="cat.value">
+                {{ cat.icon }} {{ cat.label }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="priority">Priorité</label>
+            <select
+              id="priority"
+              name="priority"
+              [(ngModel)]="taskForm().priority"
+              class="form-select"
+              [disabled]="isSubmitting()"
+            >
+              <option *ngFor="let pri of priorityOptions" [value]="pri.value">
+                {{ pri.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="dueDate">Date d'échéance</label>
+          <input
+            type="date"
+            id="dueDate"
+            name="dueDate"
+            [(ngModel)]="taskForm().dueDate"
+            class="form-input"
+            [disabled]="isSubmitting()"
+          />
+        </div>
+        
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn-primary"
+            [disabled]="!taskFormElement.form.valid || isSubmitting()"
+          >
+            <span *ngIf="!isSubmitting()">
+              {{ taskForm().id ? 'Mettre à jour' : 'Créer' }}
+            </span>
+            <span *ngIf="isSubmitting()" class="loading">
+              <span class="spinner-small"></span>
+              En cours...
+            </span>
+          </button>
+          <button 
+            type="button" 
+            class="btn-secondary"
+            (click)="resetForm()"
+            [disabled]="isSubmitting()"
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- رسائل النظام -->
+  <div *ngIf="errorMessage()" class="notification error">
+    <div class="notification-content">
+      <span class="notification-icon">⚠️</span>
+      <span class="notification-text">{{ errorMessage() }}</span>
+      <button class="notification-close" (click)="errorMessage.set('')">×</button>
+    </div>
+  </div>
+  
+  <div *ngIf="successMessage()" class="notification success">
+    <div class="notification-content">
+      <span class="notification-icon">✅</span>
+      <span class="notification-text">{{ successMessage() }}</span>
+      <button class="notification-close" (click)="successMessage.set('')">×</button>
+    </div>
+  </div>
+</div>
