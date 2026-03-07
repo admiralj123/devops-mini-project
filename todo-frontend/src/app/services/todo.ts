@@ -8,8 +8,8 @@ import { Task, TaskCreateDto, mapToTaskCreateDto } from '../models/task';
   providedIn: 'root'
 })
 export class TodoService {
-  private apiUrl = 'http://localhost:8080/api';
-
+  private apiUrl = '/api';
+//amine hajji 
   constructor(
     private http: HttpClient,
     private authService: AuthService
