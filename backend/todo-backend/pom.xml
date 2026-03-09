@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.5</version>   <!-- إصدار مستقر يعمل مع Java 17 -->
+        <version>3.1.5</version>
         <relativePath/>
     </parent>
 
@@ -30,19 +30,19 @@
 
     <!-- الاعتماديات (Dependencies) -->
     <dependencies>
-        <!-- Web (MVC) لإنشاء REST API -->
+        <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- JPA للتعامل مع قاعدة البيانات -->
+        <!-- JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- DevTools لتسهيل التطوير (إعادة تشغيل تلقائية) -->
+        <!-- DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -50,40 +50,28 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- مشغل PostgreSQL -->
+        <!-- PostgreSQL -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- اختياري: إذا أردت استخدام H2 في الذاكرة للاختبار -->
-        <!-- 
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        -->
-
-        <!-- اختبارات Spring Boot (تشمل JUnit و Mockito وغيرها) -->
+        <!-- اختبارات Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
+    </dependencies>
 
     <!-- إعدادات بناء المشروع -->
     <build>
         <plugins>
-            <!-- Plugin Spring Boot لتعبئة وتشغيل التطبيق -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
-            <!-- اختياري: لضبط إصدار Java للمترجم -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
