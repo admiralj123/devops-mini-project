@@ -83,4 +83,11 @@
             </plugin>
         </plugins>
     </build>
+<distributionManagement>
+    <repository>
+        <id>nexus-releases</id> <!-- يجب أن يتطابق هذا المعرف مع الإعداد في settings.xml -->
+        <name>Releases Repository</name>
+        <url>http://<192.168.25.149>:8081/repository/my-project-releases/</url>
+    </repository>
+</distributionManagement>
 </project>
